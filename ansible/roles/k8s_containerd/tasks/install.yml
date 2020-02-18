@@ -1,0 +1,49 @@
+- name: Install package pre-requisites
+  become: yes
+  yum:
+    name:
+    - device-mapper-persistent-data 
+    - lvm2
+    state: present
+
+- name: Setup docker ce repo
+  become: yes
+  template:
+    src: docker-ce.repo
+    dest: /etc/yum.repos.d/docker-ce.repo
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Install containerd
+  become: yes
+  yum:
+    name:
+    - containerd.io-{{ containerd_io_version }}
+    state: present
+
+- name: Create /etc/containerd directory
+  become: yes
+  file:
+    dest: /etc/containerd
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Configure containerd daemon
+  become: yes
+  template: 
+    src: _etc_containerd_config.toml.j2
+    dest: /etc/containerd/config.toml
+    owner: root
+    group: root
+    mode: 0600
+  notify: restart containerd
+
+- name: Start and enable containerd
+  become: yes
+  service:
+    name: containerd
+    state: started
+    enabled: true

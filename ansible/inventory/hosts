@@ -1,0 +1,18 @@
+[all]
+k8s-master ansible_host=k8s-master.local ansible_user=centos
+k8s-worker-node-1 ansible_host=k8s-worker-node-1.local ansible_user=centos
+k8s-worker-node-2 ansible_host=k8s-worker-node-2.local ansible_user=centos
+
+[all:vars]
+journalbeat_elasticsearch_host=192.168.0.142
+k8s_cluster_cidr=10.244.0.0/16
+k8s_control_plane_port=6443
+
+[k8s_master] 
+k8s-master
+ 
+[k8s_worker_node]
+k8s-worker-node-1
+k8s-worker-node-2
+
+

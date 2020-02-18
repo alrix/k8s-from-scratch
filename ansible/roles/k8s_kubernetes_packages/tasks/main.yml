@@ -1,0 +1,36 @@
+- name: Setup kubernetes repo
+  become: yes
+  template:
+    src: kubernetes.repo
+    dest: /etc/yum.repos.d/kubernetes.repo
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Install base packages
+  become: yes
+  yum:
+    name:
+    - kubelet
+    - kubeadm
+    - kubectl
+    state: present
+    disable_excludes: kubernetes
+
+- name: Configure kubelet to use systemd for cgroups
+  become: yes
+  template:
+    src: _etc_sysconfig_kubelet.j2
+    dest: /etc/sysconfig/kubelet
+    owner: root
+    group: root 
+    mode: 0644
+  notify: restart kubelet
+
+- name: Start and enable kubelet
+  become: yes
+  service:
+    name: kubelet
+    state: started
+    enabled: true
+

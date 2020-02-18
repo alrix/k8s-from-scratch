@@ -1,0 +1,47 @@
+- stat:
+    path: /etc/kubernetes/admin.conf
+  register: master_initialised
+
+- name: Set k8s_control_plane_host
+  set_fact:
+    k8s_control_plane_host: '{{ ansible_default_ipv4.address }}' 
+
+- name: initialise the cluster
+  become: yes
+  shell: kubeadm init --apiserver-advertise-address={{ k8s_control_plane_host }} --apiserver-bind-port={{ k8s_control_plane_port }}  --pod-network-cidr={{ k8s_cluster_cidr }}
+  register: result
+  until: result.stdout.find("Your Kubernetes control-plane has initialized successfully!") != -1
+  retries: 1
+  delay: 20
+  when: master_initialised.stat.exists == False
+
+- name: create .kube directory
+  become: yes
+  file:
+    path: $HOME/.kube
+    state: directory
+    mode: 0755
+
+- name: Check admin.conf file exists.
+  stat:
+    path: /etc/kubernetes/admin.conf
+  register: k8s_conf
+
+- name: Create .kube dir
+  become: yes
+  file:
+    dest: /home/centos/.kube
+    state: directory
+    owner: centos
+    group: centos
+    mode: 0700
+
+- name: copy admin.conf to user's kube config
+  become: yes
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /home/centos/.kube/config
+    remote_src: yes
+    owner: centos
+  when: k8s_conf.stat.exists
+

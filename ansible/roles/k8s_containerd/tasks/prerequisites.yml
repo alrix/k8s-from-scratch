@@ -1,0 +1,61 @@
+- name: Disable selinux
+  become: yes
+  selinux:
+    state: disabled
+
+- name: Install package pre-requisites
+  become: yes
+  yum:
+    name:
+    - device-mapper-persistent-data 
+    - lvm2
+    state: present
+
+- name: Install br_netfilter kernel module
+  become: yes
+  modprobe:
+    name: br_netfilter
+    state: present
+
+- name: Install overlay kernel module
+  become: yes
+  modprobe:
+    name: overlay
+    state: present
+
+- name: Ensure modules load on system startup
+  become: yes
+  template:
+    src: _etc_modules-load.d_containerd.conf.j2
+    dest: /etc/modules-load.d/containerd.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: update kernel settings for bridge-nf-call-iptables
+  become: yes
+  sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+- name: update kernel settings for ip_forward
+  become: yes
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+- name: update kernel settings for bridge-nf-call-ip6tables
+  become: yes
+  sysctl:
+    name: net.bridge.bridge-nf-call-ip6tables
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
+

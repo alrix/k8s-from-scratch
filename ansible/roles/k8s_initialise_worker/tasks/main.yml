@@ -1,0 +1,44 @@
+- name: Generate a token
+  shell: kubeadm token create
+  when: inventory_hostname in groups['k8s_master']
+  register: k8s_token
+
+- name: Determine control plane address 
+  shell: echo {{ ansible_default_ipv4.address }}
+  register: k8s_control_plane_host
+  when: inventory_hostname in groups['k8s_master']
+
+- name: Generate the discovery token hash
+  become: yes
+  shell: openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
+  when: inventory_hostname in groups['k8s_master']
+  register: k8s_discovery_token
+
+- name: "Add K8S Token and Hash to dummy host"
+  add_host:
+    name:   "K8S_TOKEN_HOLDER"
+    k8s_token:  "{{ k8s_token.stdout }}"
+    k8s_discovery_token: "{{ k8s_discovery_token.stdout }}"
+    k8s_control_plane_host: "{{ k8s_control_plane_host.stdout }}"
+  when: inventory_hostname in groups['k8s_master']
+
+- stat:
+    path: /etc/kubernetes/kubelet.conf
+  register: worker_initialised
+
+
+- name: Wait for port 6443 to become open on the host, don't start checking for 10 seconds
+  wait_for:
+    host: "{{ hostvars['K8S_TOKEN_HOLDER']['k8s_control_plane_host'] }}"
+    port: 6443
+    delay: 10
+
+- name: initialise the worker
+  become: yes
+  shell: kubeadm join --token {{ hostvars['K8S_TOKEN_HOLDER']['k8s_token'] }} {{ hostvars['K8S_TOKEN_HOLDER']['k8s_control_plane_host'] }}:{{ k8s_control_plane_port }} --discovery-token-ca-cert-hash sha256:{{ hostvars['K8S_TOKEN_HOLDER']['k8s_discovery_token'] }}
+  register: result
+  until: result.stdout.find("This node has joined the cluster") != -1
+  retries: 1
+  delay: 60
+  when: inventory_hostname in groups['k8s_worker_node'] and worker_initialised.stat.exists == False
+

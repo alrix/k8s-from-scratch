@@ -1,0 +1,21 @@
+- name: Ensure hosts are setup correctly
+  hosts: all
+  roles:
+    - { role: hosts, tags: ['core','hosts'] }
+
+- name: Install k8s prerequisites
+  hosts: k8s_master, k8s_worker_node
+  roles:
+    - { role: k8s_containerd, tags: ['k8s'] }    
+    - { role: k8s_kubernetes_packages, tags: ['k8s'] }
+
+- name: Initialise the cluster
+  hosts: k8s_master
+  roles:
+    - { role: k8s_initialise_master, tags: ['k8s','initialise_cluster'] }
+    - { role: k8s_calico, tags: ['k8s','calico'] }
+
+- name: Register worker nodes
+  hosts: k8s_master, k8s_worker_node
+  roles:
+    - { role: k8s_initialise_worker, tags: ['k8s','initialise_worker'] }    

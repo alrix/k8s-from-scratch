@@ -1,0 +1,11 @@
+- name: Copy calico manifest to master
+  become: yes
+  template:
+    src: calico.yaml
+    dest: '{{ k8s_manifest_dir }}'
+    owner: root
+    group: root
+    mode: 0644
+
+- name: initialise calico networking
+  shell: kubectl apply -f {{ k8s_manifest_dir }}/calico.yaml
