@@ -17,3 +17,6 @@ filter_plugins/*.pyc
 
 # Ignore for IDE 
 .vscode
+
+# Specifics for this repo
+k8s-master-kubeconfig

@@ -2,6 +2,7 @@
   hosts: all
   roles:
     - { role: hosts, tags: ['core','hosts'] }
+    - { role: centos_updates, tags: ['core','updates'] }
 
 - name: Install k8s prerequisites
   hosts: k8s_master, k8s_worker_node

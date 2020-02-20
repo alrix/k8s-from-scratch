@@ -45,3 +45,11 @@
     owner: centos
   when: k8s_conf.stat.exists
 
+- name: Download kube config
+  become: yes
+  fetch:
+    src: /etc/kubernetes/admin.conf
+    dest: ../k8s-master-kubeconfig
+    flat: yes
+  when: k8s_conf.stat.exists
+
