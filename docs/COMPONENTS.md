@@ -35,7 +35,7 @@ kube-proxy maintains network rules on nodes. These network rules allow network c
 
 kube-proxy uses the operating system packet filtering layer if there is one and it’s available. Otherwise, kube-proxy forwards the traffic itself
 
-# Container runtime
+### Container runtime
 The container runtime is the software that is responsible for running containers. In this cluster we use containerd.
 
 ## Addons
