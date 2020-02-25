@@ -11,7 +11,7 @@
 # don't intend to connect from an external source. Otherwise ensure you have setup
 # bridge networking on your external interface.
 
-STORAGE_POOL_ROOT=/var/lib/libvirt/images
+STORAGE_POOL_ROOT=/data/libvirt/images
 BRIDGE=virbr0
 DOMAIN=local
 TIMEZONE=Europe/London
@@ -19,7 +19,7 @@ SSH_KEY=$( cat ~/.ssh/id_rsa.pub )
 CENTOS_IMAGE=/data/vm_images/CentOS-7-x86_64-GenericCloud.qcow2
 VM_MEMORY=2048
 VM_VCPU=2
-VM_DISKSIZE=20G
+VM_DISKSIZE=10G
 NODES="k8s-master k8s-worker-node-1 k8s-worker-node-2"
 
 # Create cloudinit iso
